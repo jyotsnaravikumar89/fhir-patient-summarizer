@@ -14,7 +14,6 @@ if [ ! -f "${JAR_PATH}" ]; then
     curl -L -o "${JAR_PATH}" "${JAR_URL}"
 fi
 
-# Generate 20 patients in Massachusetts (default), FHIR R4 output as transaction bundles
 java -jar "${JAR_PATH}" \
     -p 20 \
     --exporter.fhir.export true \
@@ -22,4 +21,4 @@ java -jar "${JAR_PATH}" \
     --exporter.baseDirectory "${OUTPUT_DIR}" \
     Massachusetts
 
-echo "Done. Bundles in ${OUTPUT_DIR}/fhir/"
+echo "Done."
