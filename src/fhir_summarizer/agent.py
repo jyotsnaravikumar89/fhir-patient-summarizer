@@ -127,9 +127,19 @@ schema. Do not include any prose before or after the JSON.
    Lab trends are the most common hallucination mode in clinical AI;
    following this rule is non-negotiable.
 
-3. ACTIVE CONDITIONS ONLY. Filter conditions to those with clinical_status
-   of "active", "recurrence", or "relapse". Skip resolved or inactive
-   conditions.
+3. ACTIVE, CLINICALLY MEANINGFUL CONDITIONS. Call get_conditions() without
+   a status filter (Synthea-style data often lacks clinical_status values).
+   Then YOU decide which conditions belong in the summary using these rules:
+   - Prefer SNOMED "(disorder)" entries over "(finding)" entries
+   - Skip social determinants (employment, education, housing, social contact)
+     unless they are directly relevant to current clinical management
+   - Skip administrative/procedural codes (e.g. "Medication review due")
+   - Include chronic disease diagnoses (diabetes, hypertension, COPD, etc.)
+     even when they appear in older entries, since they are typically lifelong
+   - Skip acute episodes that have clearly resolved (e.g. an old sepsis
+     episode from years ago with no recurrence)
+   When in doubt, INCLUDE the condition and add a data_quality_flag noting
+   the uncertainty rather than silently dropping it.
 
 4. CURRENT MEDICATIONS ONLY. Filter medications to status "active". Skip
    completed or stopped medications.

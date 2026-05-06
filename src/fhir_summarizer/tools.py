@@ -184,19 +184,32 @@ def get_observations(
     record: PatientRecord,
     category: str | None = None,
     since_date: str | None = None,
+    limit: int = 200,
 ) -> list[dict[str, Any]]:
     """Return observations, optionally filtered by category and date.
 
     category values include 'laboratory', 'vital-signs', 'survey'.
     since_date is an ISO date string; observations on or after this date are
-    returned.
+    returned. If since_date is None, defaults to the last 2 years to bound
+    the result set for patients with very long histories.
+
+    limit caps the number of returned observations (most recent first).
+    Default 200 is sufficient for trend analysis without blowing the
+    LLM context window.
     """
+    from datetime import timedelta
     since_dt: date | None = None
     if since_date:
         try:
             since_dt = date.fromisoformat(since_date)
         except ValueError:
             since_dt = None
+    if since_dt is None:
+        # Default to last 2 years to bound the result set
+        since_dt = date.today() - timedelta(days=730)
+    if since_dt is None:
+        # Default to last 2 years to bound the result set
+        since_dt = date.today() - timedelta(days=730)
 
     out: list[dict[str, Any]] = []
     for obs in record.observations:
@@ -245,7 +258,9 @@ def get_observations(
                 "source_resource_id": obs.id,
             }
         )
-    return out
+    # Sort most-recent-first and cap at limit
+    out.sort(key=lambda o: o["effective_date"] or "", reverse=True)
+    return out[:limit]
 
 
 def get_encounters(record: PatientRecord, limit: int = 10) -> list[dict[str, Any]]:
